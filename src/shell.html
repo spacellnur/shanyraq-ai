@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Шаңырақ AI — колледждерге арналған ИИ-желі</title>
+<style>
+:root{--bg:#f3f4f7;--card:#fff;--line:#e2e5ec;--text:#1d2130;--muted:#6b7183;--work:#16a34a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:12px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 6px}
+h1{font-size:22px;margin:0}h1 span{color:var(--muted);font-weight:400;font-size:16px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 10px;max-width:860px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chips button i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+select,input,button{font:inherit;color:var(--text);background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 12px}
+input{flex:1;min-width:180px}button{cursor:pointer}button:hover{border-color:#b9bfcc}
+button.pri{background:#111827;color:#fff;border-color:#111827}
+button.sel{border-color:#111827;font-weight:600;background:#f1f3f8}
+#busy{color:#d97706;font-size:13px;min-height:18px;margin:-2px 0 6px}
+#scene{position:relative;width:100%;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#e8ebf2;touch-action:none}
+#scene canvas{display:block}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;background:#fff;border:2px solid #8a90a2;border-radius:999px;padding:1px 8px;font-size:11px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.lbl b{margin-right:5px}
+.room{position:absolute;left:0;top:0;background:#1d2130;color:#fff;border:2px solid #475569;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;white-space:nowrap;pointer-events:auto;cursor:pointer}
+#crumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}#crumbs span{color:var(--muted)}#crumbs button{padding:5px 12px}
+.cnt{position:absolute;left:0;top:0;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#0E2A47;color:#fff;font:600 11px/20px system-ui,sans-serif;text-align:center;pointer-events:auto;cursor:default;box-shadow:0 0 0 2px #fff}
+.mini.pil{background:#0E2A47;color:#fff;border-color:#0E2A47}.cnt:hover{background:#00799A}
+#navbar{position:absolute;left:10px;top:10px;display:flex;gap:6px;align-items:center;z-index:3}#navbar button{font:500 13px/1.2 "Golos Text",system-ui,sans-serif;padding:7px 11px;border-radius:6px;background:#fff;border:1px solid #c9d0d7;color:#17202B;box-shadow:0 1px 2px rgba(0,0,0,.08)}#navbar button:disabled{opacity:.45;cursor:default}#navWhere{font:600 13px "Golos Text",system-ui,sans-serif;background:#0E2A47;color:#fff;border-radius:6px;padding:7px 11px;white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis}#navWhere:empty{display:none}
+.mini{position:absolute;left:0;top:0;background:rgba(255,255,255,.9);color:#4b5263;border:1px solid #cbd5e1;border-radius:999px;padding:1px 7px;font-size:10px;white-space:nowrap}
+.room span{font-weight:400;color:#cbd5e1}.room.live{border-color:#34d399;box-shadow:0 0 14px rgba(52,211,153,.6)}
+#hud{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;pointer-events:none;align-items:flex-end}
+.pill{background:#fff;border:2px solid #34d399;border-radius:999px;padding:3px 10px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.1);white-space:nowrap}
+.pill b{background:#34d399;color:#06281b;border-radius:999px;padding:0 7px;margin-left:6px}
+.pill.pk{border-color:#f472b6}.pill.pk b{background:#f472b6;color:#4a0a2a}.pill.yl{border-color:#fbbf24}.pill.yl b{background:#fbbf24;color:#3d2a00}
+#floors{position:absolute;left:10px;bottom:10px;display:flex;flex-wrap:wrap;gap:4px;max-width:70%}
+#floors button{padding:3px 9px;font-size:12px;border-radius:8px;background:rgba(255,255,255,.92)}
+#camctl{position:absolute;right:10px;bottom:10px}
+#camctl button{padding:3px 9px;font-size:12px;border-radius:8px;background:rgba(255,255,255,.92)}
+#doc{background:#fff;border:1px solid var(--line);border-left:6px solid #f59e0b;border-radius:12px;padding:12px 16px;margin:12px 0}
+#doc .top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#doc h2{margin:0;font-size:16px}#docbody{max-height:520px;overflow:auto;margin-top:8px;font-family:"Times New Roman",Georgia,serif;font-size:15px}
+#docbody table{border-collapse:collapse;width:100%;margin:6px 0}#docbody td,#docbody th{border:1px solid #cfd4dd;padding:4px 7px;vertical-align:top;text-align:left}
+#docbody th{background:#f3f4f7}#docbody h3{font-family:system-ui,sans-serif;margin:4px 0 6px}#docbody h4{margin:10px 0 4px}#docbody .meta{color:var(--muted);font-size:13px}
+.note{font-size:12px;color:var(--muted)}
+h2.sec{font-size:15px;margin:16px 0 6px}
+.fcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.card{background:#fff;border:1px solid var(--line);border-left:5px solid;border-radius:10px;padding:8px 10px;font-size:13px}
+.card .nm{font-weight:700;font-size:14px;margin-bottom:4px}.card .nm span{font-weight:400;color:var(--muted)}
+.card .ag{margin:2px 0}.card .ag i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.card em{color:#2563eb;font-style:normal}
+#log{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:12px/1.6 ui-monospace,Consolas,monospace;max-height:240px;overflow:auto}
+#log div{border-bottom:1px solid #f0f1f4}#log .t{color:#9aa0b0;margin-right:6px}#log .fin{color:var(--work);font-weight:600}#log .mcpl{color:#0d9488}
+@media (max-width:600px){.lbl{font-size:9px;padding:1px 6px}.room{font-size:9px;padding:2px 7px}.pill{font-size:10px}#floors{max-width:100%;bottom:44px}}
+</style>
+<style>/*FONTS*/</style>
+<style>/*APPCSS*/</style>
+</head>
+<body>
+<div id="login"><div class="lg-wrap"><div class="lg-about"><div class="lg-mark"><svg width="40" height="40" viewBox="0 0 180 180" role="img" aria-label="Шаңырақ логотипі"><rect width="180" height="180" rx="39.6" fill="#0E2A47"/><line x1="167.4" y1="90.0" x2="175.5" y2="90.0" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="165.9" y1="105.1" x2="170.3" y2="106.0" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="161.5" y1="119.6" x2="169.0" y2="122.7" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="154.4" y1="133.0" x2="158.1" y2="135.5" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="144.7" y1="144.7" x2="150.5" y2="150.5" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="133.0" y1="154.4" x2="135.5" y2="158.1" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="119.6" y1="161.5" x2="122.7" y2="169.0" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="105.1" y1="165.9" x2="106.0" y2="170.3" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="90.0" y1="167.4" x2="90.0" y2="175.5" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="74.9" y1="165.9" x2="74.0" y2="170.3" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="60.4" y1="161.5" x2="57.3" y2="169.0" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="47.0" y1="154.4" x2="44.5" y2="158.1" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="35.3" y1="144.7" x2="29.5" y2="150.5" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="25.6" y1="133.0" x2="21.9" y2="135.5" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="18.5" y1="119.6" x2="11.0" y2="122.7" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="14.1" y1="105.1" x2="9.7" y2="106.0" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="12.6" y1="90.0" x2="4.5" y2="90.0" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="14.1" y1="74.9" x2="9.7" y2="74.0" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="18.5" y1="60.4" x2="11.0" y2="57.3" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="25.6" y1="47.0" x2="21.9" y2="44.5" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="35.3" y1="35.3" x2="29.5" y2="29.5" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="47.0" y1="25.6" x2="44.5" y2="21.9" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="60.4" y1="18.5" x2="57.3" y2="11.0" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="74.9" y1="14.1" x2="74.0" y2="9.7" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="90.0" y1="12.6" x2="90.0" y2="4.5" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="105.1" y1="14.1" x2="106.0" y2="9.7" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="119.6" y1="18.5" x2="122.7" y2="11.0" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="133.0" y1="25.6" x2="135.5" y2="21.9" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="144.7" y1="35.3" x2="150.5" y2="29.5" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="154.4" y1="47.0" x2="158.1" y2="44.5" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="161.5" y1="60.4" x2="169.0" y2="57.3" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><line x1="165.9" y1="74.9" x2="170.3" y2="74.0" stroke="#F5B400" stroke-width="2.5" stroke-linecap="round"/><circle cx="90.0" cy="90.0" r="67.0" fill="none" stroke="#F7F5EF" stroke-width="9.9"/><clipPath id="cp180"><circle cx="90.0" cy="90.0" r="62.1"/></clipPath><g clip-path="url(#cp180)" stroke="#00A3C4" stroke-width="7.2" fill="none" stroke-linecap="round"><path d="M63.9 22.9 Q54.8 90.0 63.9 157.1"/><path d="M22.9 63.9 Q90.0 54.8 157.1 63.9"/><path d="M90.0 22.9 Q90.0 90.0 90.0 157.1"/><path d="M22.9 90.0 Q90.0 90.0 157.1 90.0"/><path d="M116.1 22.9 Q125.2 90.0 116.1 157.1"/><path d="M22.9 116.1 Q90.0 125.2 157.1 116.1"/></g><circle cx="63.9" cy="63.9" r="5.0" fill="#F5B400" stroke="#0E2A47" stroke-width="2.2"/><circle cx="59.4" cy="90.0" r="5.0" fill="#F5B400" stroke="#0E2A47" stroke-width="2.2"/><circle cx="63.9" cy="116.1" r="5.0" fill="#F5B400" stroke="#0E2A47" stroke-width="2.2"/><circle cx="90.0" cy="59.4" r="5.0" fill="#F5B400" stroke="#0E2A47" stroke-width="2.2"/><circle cx="90.0" cy="90.0" r="9.0" fill="#F5B400" stroke="#0E2A47" stroke-width="2.2"/><circle cx="90.0" cy="120.6" r="5.0" fill="#F5B400" stroke="#0E2A47" stroke-width="2.2"/><circle cx="116.1" cy="63.9" r="5.0" fill="#F5B400" stroke="#0E2A47" stroke-width="2.2"/><circle cx="120.6" cy="90.0" r="5.0" fill="#F5B400" stroke="#0E2A47" stroke-width="2.2"/><circle cx="116.1" cy="116.1" r="5.0" fill="#F5B400" stroke="#0E2A47" stroke-width="2.2"/></svg>Шаңырақ AI</div>
+<h1>Колледждердің ИИ-көмекшілері бір жүйеде</h1>
+<p>Оқытушы сабақ жоспарын, тестті, хаттаманы бірнеше минутта алады. Басшылар өздеріне бағынатын бөлімдердің жұмысын көреді.</p>
+<ul class="chain"><li>Оқу-ағарту министрлігі, Астана</li><li>Облыстың білім басқармасы</li><li>Колледж: директор, бөлімдер, оқытушылар</li></ul></div>
+<form class="lg-form" id="loginForm" novalidate><h2>Жүйеге кіру</h2>
+<div class="fld"><label for="lg">Логин</label><input id="lg" autocomplete="username"></div>
+<div class="fld"><label for="pw">Құпиясөз</label><input id="pw" type="password" autocomplete="current-password"></div>
+<div class="err" id="lgErr" role="alert"></div><button class="btn pri" type="submit">Кіру</button>
+<div class="demo"><h3>Демо-аккаунттар</h3><p>Рөлді таңдаңыз, логин мен құпиясөз өзі толады. Құпиясөз барлығында бірдей: demo</p><div class="demo-list" id="demoList"></div></div></form></div></div>
+<div id="app" class="hide"><div class="appbar"><div class="brand"><svg width="30" height="30" viewBox="0 0 150 150" role="img" aria-label="Шаңырақ логотипі"><line x1="139.5" y1="75.0" x2="146.2" y2="75.0" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="138.3" y1="87.6" x2="141.9" y2="88.3" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="134.6" y1="99.7" x2="140.8" y2="102.3" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="128.6" y1="110.8" x2="131.7" y2="112.9" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="120.6" y1="120.6" x2="125.4" y2="125.4" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="110.8" y1="128.6" x2="112.9" y2="131.7" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="99.7" y1="134.6" x2="102.3" y2="140.8" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="87.6" y1="138.3" x2="88.3" y2="141.9" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="75.0" y1="139.5" x2="75.0" y2="146.2" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="62.4" y1="138.3" x2="61.7" y2="141.9" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="50.3" y1="134.6" x2="47.7" y2="140.8" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="39.2" y1="128.6" x2="37.1" y2="131.7" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="29.4" y1="120.6" x2="24.6" y2="125.4" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="21.4" y1="110.8" x2="18.3" y2="112.9" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="15.4" y1="99.7" x2="9.2" y2="102.3" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="11.7" y1="87.6" x2="8.1" y2="88.3" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="10.5" y1="75.0" x2="3.8" y2="75.0" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="11.7" y1="62.4" x2="8.1" y2="61.7" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="15.4" y1="50.3" x2="9.2" y2="47.7" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="21.4" y1="39.2" x2="18.3" y2="37.1" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="29.4" y1="29.4" x2="24.6" y2="24.6" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="39.2" y1="21.4" x2="37.1" y2="18.3" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="50.3" y1="15.4" x2="47.7" y2="9.2" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="62.4" y1="11.7" x2="61.7" y2="8.1" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="75.0" y1="10.5" x2="75.0" y2="3.8" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="87.6" y1="11.7" x2="88.3" y2="8.1" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="99.7" y1="15.4" x2="102.3" y2="9.2" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="110.8" y1="21.4" x2="112.9" y2="18.3" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="120.6" y1="29.4" x2="125.4" y2="24.6" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="128.6" y1="39.2" x2="131.7" y2="37.1" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="134.6" y1="50.3" x2="140.8" y2="47.7" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><line x1="138.3" y1="62.4" x2="141.9" y2="61.7" stroke="#F5B400" stroke-width="2.1" stroke-linecap="round"/><circle cx="75.0" cy="75.0" r="55.8" fill="none" stroke="#ffffff" stroke-width="8.2"/><clipPath id="cp150"><circle cx="75.0" cy="75.0" r="51.8"/></clipPath><g clip-path="url(#cp150)" stroke="#ffffff" stroke-width="6.0" fill="none" stroke-linecap="round"><path d="M53.3 18.2 Q45.7 75.0 53.3 131.8"/><path d="M18.2 53.3 Q75.0 45.7 131.8 53.3"/><path d="M75.0 18.2 Q75.0 75.0 75.0 131.8"/><path d="M18.2 75.0 Q75.0 75.0 131.8 75.0"/><path d="M96.7 18.2 Q104.3 75.0 96.7 131.8"/><path d="M18.2 96.7 Q75.0 104.3 131.8 96.7"/></g><circle cx="53.3" cy="53.3" r="4.2" fill="#F5B400" stroke="#ffffff" stroke-width="1.8"/><circle cx="49.5" cy="75.0" r="4.2" fill="#F5B400" stroke="#ffffff" stroke-width="1.8"/><circle cx="53.3" cy="96.7" r="4.2" fill="#F5B400" stroke="#ffffff" stroke-width="1.8"/><circle cx="75.0" cy="49.5" r="4.2" fill="#F5B400" stroke="#ffffff" stroke-width="1.8"/><circle cx="75.0" cy="75.0" r="7.5" fill="#F5B400" stroke="#ffffff" stroke-width="1.8"/><circle cx="75.0" cy="100.5" r="4.2" fill="#F5B400" stroke="#ffffff" stroke-width="1.8"/><circle cx="96.7" cy="53.3" r="4.2" fill="#F5B400" stroke="#ffffff" stroke-width="1.8"/><circle cx="100.5" cy="75.0" r="4.2" fill="#F5B400" stroke="#ffffff" stroke-width="1.8"/><circle cx="96.7" cy="96.7" r="4.2" fill="#F5B400" stroke="#ffffff" stroke-width="1.8"/></svg>Шаңырақ AI</div>
+<nav aria-label="Негізгі мәзір"><button data-tab="home">Басты бет</button><button data-tab="map">3D-желі</button><button data-tab="cab">Кабинеттер</button><button data-tab="net">Networking</button><button data-tab="admin">Әкімшілік</button></nav>
+<div class="me"><div class="row"><div class="av" id="meAv"></div><div class="who"><b id="meName"></b><small id="meRole"></small></div></div><button class="btn sm" id="logout">Шығу</button></div></div>
+<div id="tab-home"></div><div id="tab-map"><div class="wrap"><div id="mapPath"></div>
+<header><h1>3D-желі</h1></header>
+<p class="sub">Оқытушы тапсырманы ресепшнге қалдырады. Бас оркестратор оны керекті қабатқа жібереді, бөлім басшысы жұмысты ИИ-агенттерге бөледі. Үлгілер мен стандарттарды агенттер жертөледегі мұрағаттан алады.</p>
+<div id="crumbs"><button data-v="kz">Қазақстан</button><span>›</span><button data-v="reg">Түркістан облысы</button><span>›</span><button data-v="col">Колледж</button></div>
+<div class="chips" id="chips"></div>
+<div class="ctrl">
+ <input id="custom" placeholder="Өз тапсырмаңыз: мысалы, жиналыс хаттамасы немесе Python бойынша тест">
+ <button class="pri" id="runc">Жіберу</button>
+ <button id="sp1" class="sel">1×</button><button id="sp2">2×</button><button id="sp4">4×</button>
+</div>
+<div id="busy"></div>
+<div id="scene">
+ <div id="labels"></div>
+ <div id="navbar"><button id="navB" disabled aria-label="Артқа">‹ Артқа</button><button id="navF" disabled aria-label="Алға">Алға ›</button><span id="navWhere"></span></div>
+ <div id="hud">
+  <div class="pill">Орындалды<b id="hDone">0</b></div>
+  <div class="pill yl">Үнемделді<b id="hSaved">0 мин</b></div>
+  <div class="pill pk">Жұмыста<b id="hAct">0</b></div>
+ </div>
+ <div id="floors"></div>
+ <div id="hint" style="position:absolute;left:10px;bottom:10px;font-size:12px;color:#334155;background:rgba(255,255,255,.85);padding:3px 9px;border-radius:8px;pointer-events:none"></div>
+ <div id="camctl"><button id="follow">Камера тапсырмамен</button></div>
+ <div id="loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#4b5263">Ғимарат жүктелуде…</div>
+</div>
+<div id="doc" hidden><div class="top"><h2><span id="doctitle">Дайын құжат</span></h2><button id="docclose">Жабу</button></div><div id="docbody"></div></div>
+<h2 class="sec">Қабаттар мен агенттер</h2>
+<div class="fcards" id="fcards"></div>
+<h2 class="sec">Жұмыс журналы</h2>
+<div id="log"></div>
+<p class="note">Прототип: сценарийлер көрсету үшін жасалған. 3D-модельдер: Kenney (CC0). Облыс шекаралары: geoBoundaries (CC BY 4.0), 2022 жылға дейінгі күйі. Колледждер қала мен аудан орталықтарына шамамен орналастырылған.</p>
+</div>
+</div><div id="tab-cab" class="hide"></div><div id="tab-net" class="hide"></div><div id="tab-admin" class="hide"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
+<!--GLB-->
+<!--KZ-->
+<!--OBL-->
+<!--DOCS-->
+<!--MAIN-->
+<!--APP-->
+</body>
+</html>
