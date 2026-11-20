@@ -40,7 +40,8 @@ const EVENTS=[
  E(0,'analyst',null,null,'Облыстар бойынша дашборд жаңартылды','бүгін',30,'Республика')];
 store.get('shq_events',[]).forEach(e=>EVENTS.unshift(e));
 window.addEventListener('shq-done',ev=>{if(!ME)return;const r=ROLES[ME],d=ev.detail;const e=E(r.lvl,ME,r.col??null,r.dept||null,`«${d.text}» дайындады (ИИ-агенттер)`,'жаңа ғана',d.saved,'ИИ-агент');
- EVENTS.unshift(e);const l=store.get('shq_events',[]);l.unshift(e);store.set('shq_events',l.slice(0,20))});
+ EVENTS.unshift(e);const l=store.get('shq_events',[]);l.unshift(e);store.set('shq_events',l.slice(0,20));
+ if(d.doc){const D=store.get('shq_docs',[]);D.unshift({id:'d'+Date.now(),title:d.title||d.text,html:d.doc,role:ME,lvl:r.lvl,col:r.col??null,dept:r.dept||null,date:new Date().toLocaleString('kk-KZ',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),saved:d.saved,cab:d.cab||null});store.set('shq_docs',D.slice(0,50))}});
 function canSee(me,e){const r=ROLES[me];
  if(e.lvl<r.lvl)return false;if(r.lvl<=1)return true;
  if(e.col!==r.col)return false;if(r.lvl===2)return true;
@@ -99,8 +100,8 @@ function path(){const r=ROLES[ME];
 /* вкладки */
 document.querySelectorAll('.appbar nav button').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 function tab(t){document.querySelectorAll('.appbar nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
- ['home','map','cab','net','admin'].forEach(x=>$('tab-'+x).classList.toggle('hide',x!==t));if(t!=='cab')$('tab-cab').innerHTML='';
- if(t==='home')renderHome();if(t==='net')renderNet();if(t==='admin')renderAdmin();if(t==='cab')renderCab();
+ ['home','map','cab','docs','net','admin'].forEach(x=>$('tab-'+x).classList.toggle('hide',x!==t));if(t!=='cab')$('tab-cab').innerHTML='';
+ if(t==='home')renderHome();if(t==='net')renderNet();if(t==='admin')renderAdmin();if(t==='cab')renderCab();if(t==='docs')renderDocs();
  if(t==='map'){$('mapPath').innerHTML=path();window.dispatchEvent(new Event('resize'));const r=ROLES[ME];
   document.querySelectorAll('#crumbs button').forEach(b=>b.classList.toggle('hide',(b.dataset.v==='kz'&&r.lvl>0)||(b.dataset.v==='reg'&&r.lvl>1)));
   document.querySelectorAll('#crumbs span').forEach((s,i)=>s.classList.toggle('hide',(i===0&&r.lvl>0)||(i===1&&r.lvl>1)));
@@ -152,9 +153,12 @@ function qa(c){if(c==='map'||c==='net'||c==='admin'||c==='cab')return tab(c);if(
 const P=(t,ph)=>({t,ph});
 const AGSET={
  oku:{ag:{dir:['Бас агент','Тапсырманы бөліп, жауапты жинайды'],res:['Әдіскер','Стандарттар мен әдістемені іздейді'],lib:['Кітапханашы','Колледж құжаттарынан RAG арқылы іздейді'],cod:['Тест құрастырушы','Тест пен тапсырмалар жасайды'],wri:['Жазушы','Соңғы құжатты жазады'],rev:['Тексеруші','Қателерді іздейді']},
-  presets:[P('Сабақ жоспары: Т18 RecyclerView, 80 минут',[[['res','КТП мен оқыту нәтижелерін іздеуде',4,9000],['lib','RAG: колледждің сабақ жоспары үлгісі',4,6000,1],['cod','практикалық тапсырма құрастыруда',5,8000]],[['wri','сабақ жоспарын жазуда',5,6000]]]),
+  presets:[P('ҚМЖ: ертеңгі 2 сабақ (Т18 RecyclerView, ТБ-26-11)',[[['res','КТП-дан тақырып пен оқыту нәтижелерін алуда',4,9000],['lib','RAG: колледждің ҚМЖ үлгісі',4,6000,1],['cod','практикалық тапсырма құрастыруда',5,8000]],[['wri','2 сабақтың жоспарын жазуда',5,7000]]]),
+   P('КТП: КМ 01 модулі, 2-семестр',[[['res','РУП пен модуль бағдарламасын талдауда',5,10000],['lib','RAG: КТП үлгісі',3,5000,1]],[['cod','сағаттарды тақырыптарға бөлуде',5,8000]],[['wri','КТП кестесін ресімдеуде',4,5000]]]),
+   P('Тест және дескрипторлар: Android негіздері, 15 сұрақ',[[['cod','сұрақтар мен жауап кілтін жасауда',5,9000],['lib','RAG: бағалау критерийлері',3,4000,1]],[['wri','дескрипторларды жазуда',4,3500]]]),
+   P('Практикалық жұмысты бағалау парағы',[[['res','ОН нәтижелерін алуда',3,5000]],[['cod','критерийлер мен ұпайларды құруда',4,5000]],[['wri','бағалау парағын жазуда',3,3000]]]),
    P('ТБ-26-11 ата-аналар жиналысының хаттамасы',[[['lib','RAG: хаттама үлгісі',3,5000,1],['res','пропуск пен үлгерімді талдауда',4,7000]],[['wri','хаттама жазуда',4,4000]]]),
-   P('Python циклдары бойынша 15 тест сұрағы',[[['cod','сұрақтар мен жауап кілтін жасауда',5,9000],['lib','RAG: бағалау критерийлері',3,4000,1]],[['wri','дескрипторларды жазуда',4,3500]]])]},
+   P('Аттестация портфолиосын толықтыру',[[['res','курстар мен жетістіктерді жинауда',4,7000],['lib','RAG: аттестация талаптары',3,5000,1]],[['wri','рефлексиялық эссе жазуда',4,4000]]])]},
  kadr:{ag:{dir:['Бас агент','Тапсырманы бөліп, жауапты жинайды'],res:['Заң кеңесшісі','Еңбек кодексі мен нормаларды іздейді'],lib:['Мұрағатшы','Бұйрықтар мұрағатынан іздейді'],cod:['Кесте құрастырушы','Мерзімдер мен кестелерді есептейді'],wri:['Бұйрық жазушы','Бұйрық жобасын жазады'],rev:['Тексеруші','Деректер мен мерзімдерді тексереді']},
   presets:[P('Жаңа оқытушыны қабылдау бұйрығы',[[['res','Еңбек кодексінің талаптарын іздеуде',4,7000],['lib','RAG: бұйрық үлгісі',3,5000,1]],[['wri','бұйрық жобасын жазуда',4,4000]]]),
    P('Еңбек шарттарының мерзімін тексеру',[[['cod','мерзімдер кестесін есептеуде',5,8000],['lib','RAG: қолданыстағы шарттар',4,6000,1]],[['wri','ескерту тізімін жазуда',3,3000]]])]},
@@ -205,8 +209,36 @@ const NEEDS={
  career:[['Түлектер тізімі мен мамандығы','Оқу бөлімі','Жұмысқа орналастыру','auto'],['Практика базалары','Шеберхана','Жұмыс берушілер','auto'],['Дипломдық жұмыс нәтижелері','Оқу бөлімі','Ұсыныс хат','auto']],
  adm:[['Мамандықтар мен орын саны','Директор, оқу бөлімі','Қабылдау','auto'],['Жатақхана орындары','Жатақхана','Талапкерге жауап','auto']],
  office:[['Бұйрықтар','Директор, кадр','Тізілім','auto'],['Бөлімдердің жауаптары','Барлық бөлімдер','Хатқа жауап','ask']]};
+/* имена агентов под каждую роль: [имя, что делает] для слотов dir,res,lib,cod,wri,rev */
+const AN=(d,r,l,c,w,v)=>({dir:d,res:r,lib:l,cod:c,wri:w,rev:v});
+const NAMES={
+ boss:AN(['Директордың бас агенті','Тапсырманы бөліп, шешімге дайындайды'],['Бөлімдер талдаушысы','Барлық бөлімнің айлық деректерін жинайды'],['Бұйрықтар мұрағаты','Бұйрық пен хаттамаларды RAG арқылы табады'],['KPI дашборд жасаушы','Көрсеткіштерді есептеп, кесте жасайды'],['Баяндама жазушы','Есеп, баяндама, слайд жазады'],['Заң сарапшысы','Құжаттың нормаларға сәйкестігін тексереді']),
+ zam:AN(['Оқу процесінің үйлестірушісі','Оқу бөлімінің тапсырмаларын бөледі'],['Үлгерім талдаушы','Журнал мен қатысуды талдайды'],['Оқу жоспарлары мұрағаты','РУП, КТП, бағдарламаларды табады'],['Кесте құрастырушы','Сабақ кестесі мен ауыстыруларды жасайды'],['Бұйрық жазушы','Оқу бөлімінің бұйрықтарын жазады'],['Сапа бақылаушы','Сабақ жоспарларын үлгіге сәйкес тексереді']),
+ kadr:AN(['Кадр үйлестірушісі','Кадр тапсырмаларын бөледі'],['Еңбек кодексі кеңесшісі','Нормалар мен талаптарды іздейді'],['Жеке істер мұрағаты','Қызметкерлердің құжаттарын табады'],['Мерзім бақылаушы','Шарт пен аттестация мерзімдерін есептейді'],['Бұйрық жазушы','Қабылдау, демалыс бұйрықтарын жазады'],['Құжат тексерушісі','Деректер мен қолтаңбаларды тексереді']),
+ buh:AN(['Қаржы үйлестірушісі','Бухгалтерия тапсырмаларын бөледі'],['Салық кеңесшісі','Салық нормаларын іздейді'],['Төлем құжаттары мұрағаты','Ведомость пен шоттарды табады'],['Есептеуші','Жалақы мен сомаларды салыстырады'],['Есеп жазушы','Есеп пен түсіндірме жазады'],['Аудитор','Сандардағы қателерді іздейді']),
+ oku:AN(['Ұстаз көмекшісі','Тапсырманы бөліп, нәтижені жинайды'],['КТП және РУП маманы','Модуль, ОН мен сағаттарды КТП-ға бөледі'],['Колледж үлгілері кітапханасы','ҚМЖ, КТП, хаттама үлгілерін табады'],['Бағалау және тест құрастырушы','Тест, дескриптор, бағалау парағы'],['ҚМЖ жазушы','Әр сабаққа қысқа мерзімді жоспар'],['Сапа тексерушісі','№130 бұйрық пен колледж үлгісіне сәйкестік']),
+ psix:AN(['Психолог көмекшісі','Тапсырманы бөліп, нәтижені жинайды'],['Ерте белгілер іздеуші','Пропуск, үлгерім, куратор белгілерін біріктіреді'],['Әдістемелер кітапханасы','Диагностика әдістемелерін табады'],['Диагностика өңдеуші','Сауалнама нәтижелерін өңдейді'],['Ұсыныс жазушы','Кураторға, ата-анаға ұсыныс жазады'],['Құпиялық сақшысы','Аты-жөні сыртқа шықпауын тексереді']),
+ soc:AN(['Әлеуметтік үйлестіруші','Тапсырманы бөліп, нәтижені жинайды'],['Деректер жинаушы','Қабылдау, кадр, бухгалтерия деректерін алады'],['Әлеуметтік паспорттар мұрағаты','Өткен жылғы паспорттарды табады'],['Санаттар кестесін жасаушы','Жетім, көп балалы, аз қамтылған тізімдері'],['Өтініш жазушы','Өтініш, хат, акт жазады'],['Жеңілдік тексерушісі','Жеңілдікке құқықты тексереді']),
+ med:AN(['Медпункт үйлестірушісі','Медбикенің тапсырмасын бөледі'],['Тізім жинаушы','Топтар мен студенттер тізімін алады'],['Анықтамалар мұрағаты','086 және өзге анықтамаларды табады'],['Тексеру кестесін жасаушы','Медтексеру мен егу кестесі'],['Хабарландыру жазушы','Кураторларға хабарландыру'],['Санитарлық нормалар тексерушісі','Талаптарға сәйкестікті тексереді']),
+ libr:AN(['Кітапхана үйлестірушісі','Тапсырманы бөледі'],['Әдебиет іздеуші','КТП-дағы әдебиет тізімдерін жинайды'],['Каталогшы','Кітапхана қорын табады'],['Қор есептеушісі','Қорды студент санымен салыстырады'],['Тапсырыс жазушы','Жаңа әдебиетке тапсырыс жазады'],['Библиография тексерушісі','Әдебиет тізімін ресімдейді']),
+ dorm:AN(['Жатақхана үйлестірушісі','Тапсырманы бөледі'],['Тұрғындар тізімшісі','Бөлмелер мен тұрғындарды жинайды'],['Ережелер мұрағаты','Жатақхана ережелерін табады'],['Кезекшілік кестесін жасаушы','Кезекшілік пен іс-шаралар кестесі'],['Хабар жазушы','Кураторға, ата-анаға хабар'],['Тәртіп бақылаушы','Ережені сақтауды тексереді']),
+ nvp:AN(['АӘД үйлестірушісі','Тапсырманы бөледі'],['Әскери есеп маманы','Ер студенттер мен туған жылын алады'],['Нормативтер мұрағаты','Әскери есеп талаптарын табады'],['Тізім құрастырушы','Әскери есепке тізім жасайды'],['Хат жазушы','Қорғаныс істері бөліміне хат'],['Құжат тексерушісі','Деректерді тексереді']),
+ career:AN(['Мансап үйлестірушісі','Тапсырманы бөледі'],['Бос орын іздеуші','Жұмыс берушілердің бос орындарын жинайды'],['Түлектер базасы','Түлектер мен мамандықтарды табады'],['Сәйкестендіруші','Түлек пен бос орынды сәйкестендіреді'],['Түйіндеме жазушы','Түлекке түйіндеме мен хат жазады'],['Жұмыс беруші байланысшысы','Кәсіпорынмен келісімді тексереді']),
+ adm:AN(['Қабылдау үйлестірушісі','Тапсырманы бөледі'],['Өтініш жинаушы','Талапкерлер өтініштерін алады'],['Қабылдау ережесі','Ереже мен мамандықтарды табады'],['Конкурс есептеушісі','Орын мен конкурсты есептейді'],['Талапкерге жауап жазушы','Жиі сұрақтарға жауап жазады'],['Құжат тексерушісі','Талапкер құжаттарын тексереді']),
+ office:AN(['Кеңсе үйлестірушісі','Кіріс хаттарды бөледі'],['Хат тіркеушісі','Кіріс хат пен бұйрықтарды тіркейді'],['Бұйрықтар тізілімі','Ұқсас жауаптарды табады'],['Мерзім бақылаушы','Орындау мерзімдерін бақылайды'],['Жауап жазушы','Хатқа жауап жобасын жазады'],['Сауаттылық тексерушісі','Мәтін мен ресімдеуді тексереді'])};
+AGSET.zam={presets:[P('Сабақ кестесіндегі ауыстыру: ауырған оқытушының сабақтары',[[['res','бос оқытушыларды іздеуде',4,7000],['lib','RAG: жүктеме мен кесте',3,5000,1]],[['cod','ауыстыру кестесін жасауда',4,6000]],[['wri','ауыстыру туралы бұйрық жазуда',3,3000]]]),
+ P('Аралық аттестация қорытындысы, 1-курс',[[['res','үлгерімді жинауда',5,9000]],[['cod','топтар бойынша кесте жасауда',4,6000]],[['wri','қорытынды анықтама жазуда',4,4000]]])]};
+Object.entries(NAMES).forEach(([k,v])=>{if(AGSET[k])AGSET[k].ag=v});
+NEEDS.zam=[['Журнал: үлгерім мен қатысу','Оқытушылар','Аттестация, бақылау','auto'],['Оқытушылардың жүктемесі','Кадр бөлімі','Кесте мен ауыстыру','auto'],['Сабақ жоспарлары','Оқытушылар','Сапаны тексеру','auto']];
+/* оқытушылардың пәніне сай өзгешеліктері */
+const TEACHER_AG={
+ s5:{res:['КТП маманы (IT)','КМ 01 модулі, ОН мен Android тақырыптары'],cod:['Тест және код тексеруші','Тест құрады, студент кодын тексереді']},
+ s6:{res:['Формула іздеуші','Тақырыпқа керек формулалар мен мысалдар'],cod:['Есеп құрастырушы','Деңгейлер бойынша есептер жасайды']},
+ s7:{res:['Аудармашы','Мәтінді kz/ru/en аударады'],cod:['Сөздік жаттықтырушы','Сөздік пен диалог жаттығулары']},
+ s8:{res:['Технологиялық карта іздеуші','Бұйым жасау кезеңдерін табады'],cod:['Өрнек құрастырушы','Өлшем бойынша лекало есептейді'],rev:['Шебер-сарапшы','Бұйым сапасының критерийлері']},
+ s9:{res:['Қатысу талдаушы','Пропуск пен кешігуді талдайды'],cod:['Тәрбие сағатын жоспарлаушы','Тақырып пен сценарий жасайды'],wri:['Ата-анаға хат жазушы','Жиналыс хаттамасы мен хаттар']}};
 const STAFF=[
- {id:'s1',role:'director',name:'Директор',set:'boss',grp:'Әкімшілік'},{id:'s2',role:'zam',name:'Оқу ісі жөніндегі орынбасар',set:'boss',grp:'Әкімшілік'},
+ {id:'s1',role:'director',name:'Директор',set:'boss',grp:'Әкімшілік'},{id:'s2',role:'zam',name:'Оқу ісі жөніндегі орынбасар',set:'zam',grp:'Әкімшілік'},
  {id:'s3',role:'kadr',name:'Кадр бөлімінің маманы',set:'kadr',grp:'Әкімшілік'},{id:'s4',role:'buh',name:'Бас бухгалтер',set:'buh',grp:'Әкімшілік'},
  {id:'s20',role:'office',name:'Іс жүргізуші (кеңсе)',set:'office',grp:'Әкімшілік'},{id:'s21',role:'adm',name:'Қабылдау комиссиясының хатшысы',set:'adm',grp:'Әкімшілік'},
  {id:'s5',role:'teacher',name:'Ақпараттық технологиялар оқытушысы',set:'oku',you:true,grp:'Оқытушылар'},
@@ -220,21 +252,86 @@ const RC={med:['#dc2626','МБ','Медбике'],dorm:['#7c3aed','ЖТ','Жат
 const RI=r=>ROLES[r]||{t:RC[r][2],c:RC[r][0],ab:RC[r][1]};
 function canSeeCab(st){const r=ROLES[ME];if(r.lvl<=2)return true;if(ME==='teacher')return !!st.you;if(r.lvl===4)return st.role===ME;
  if(st.role===ME)return true;if(r.dept==='oku')return st.role==='teacher';return false}
-let cabSel=null;
+let cabSel=null,cabTab='ag',cabQ='';const CABSTATE={},CABPEND={};
+const cabAg=st=>({...AGSET[st.set].ag,...(TEACHER_AG[st.id]||{})});
+const ownCab=st=>st.role===ME&&(ME!=='teacher'||st.you);
+const AUTO={oku:[['Сабақ жоспарын (ҚМЖ) құру','Тақырып, топ, сабақ ұзақтығы, оқыту нәтижесі. Мысалы: Т19 Fragment, ТБ-26-11, 80 мин'],['КТП құру','Модуль, семестр, сағат саны. Мысалы: КМ 01, 2-семестр, 72 сағат'],['Тест және дескриптор жасау','Тақырып, сұрақ саны, деңгей. Мысалы: Android негіздері, 15 сұрақ, орта'],['Бағалау парағын жасау','Практикалық жұмыс, критерийлер. Мысалы: RecyclerView тізімі, 10 ұпай'],['Ата-аналар жиналысының хаттамасы','Топ, күні, күн тәртібі. Мысалы: ТБ-26-11, 28 қараша, үлгерім мен пропуск'],['Аттестация портфолиосын толықтыру','Не қосу керек. Мысалы: 2026 жылғы курс, 72 сағат, ашық сабақ']]};
+const autoOf=(st,i)=>{const a=(AUTO[st.set]||[])[i],t=AGSET[st.set].presets[i].t;return a||[t.split(':')[0],'Нақты деректерді жазыңыз: кімге, қашан, не керек']};
+const SUBJ={s5:['КМ 01 Android','Т18 RecyclerView','Т19 Fragment','ТБ-26-11','214'],s6:['Математика','Туынды','Интеграл','ТБ-26-11','301'],s7:['Ағылшын тілі','Present Perfect','Job interview','БМ-26-11','108'],s8:['Тігін ісі','Белдемше пішу','Тігу технологиясы','ТІ-26-12','шеберхана'],s9:['Тәрбие сағаты','Адал еңбек','Ата-аналар жиналысы','ТБ-25-21','205']};
+const EXTRA_AG=[['Журнал талдаушы','Пропуск пен үлгерімді талдап, тәуекел тобын психологқа жібереді'],['Куратор агенті','Тәрбие сағаты, әлеуметтік паспорт, ата-анаға хат'],['Портфолио жинаушы','Аттестацияға («Ұстаз» платформасы) жетістіктерді жинайды'],['Практика агенті','Практика күнделігі, кәсіпорынмен келісім'],['Аудармашы kz ⇄ ru','Құжаттарды екі тілде дайындайды']];
+function teacherDay(st){const [subj,t1,t2,grp,room]=SUBJ[st.id]||SUBJ.s5,mine=ownCab(st),B=(i,txt,pre='')=>mine?`<button class="btn sm" data-run="${i}" data-pre="${esc(pre)}">${txt}</button>`:'';
+ return `<p class="psub" style="margin-top:0">Бүгінгі сабақтар</p>
+ ${[['08:30',t1,'ready'],['10:10',t2,'no'],['13:00','Практикалық жұмыс: '+t1,'no']].map(([h,t,k],i)=>`<div class="lesson"><span class="lt">${h}</span><div><b>${esc(t)}</b><small>${esc(grp)} · ${esc(room)} · ${esc(subj)}</small></div>${k==='ready'?'<span class="how how-auto">ҚМЖ дайын</span>':B(0,'ҚМЖ жасау',t+', '+grp+', 80 мин')}</div>`).join('')}
+ <p class="psub">Міндетті құжаттар <span class="muted">(№130 бұйрық бойынша)</span></p>
+ ${[['КТП','жылына бір рет','Бекітілген','auto',''],['ҚМЖ','әр сабаққа','1 / 3 дайын','ask',B(0,'Жасау')],['Электрондық журнал','күн сайын','Бүгін толтырылмаған','ask',''],['Аралық аттестация талдауы','семестр соңында','25 желтоқсанға дейін','idle','']].map(([n,f,stt,c,b])=>`<div class="drow2"><div><b>${n}</b><small>${f} · ${stt}</small></div>${b||`<span class="how how-${c==='idle'?'ask':c}">${c==='auto'?'Дайын':'Күтуде'}</span>`}</div>`).join('')}
+ <p class="psub">Топ</p><div class="drow2"><div><b>${esc(grp)}</b><small>25 студент · қатысу 92% · орташа баға 4,1</small></div><span class="how how-ask">3 тәуекел</span></div>
+ <p class="muted" style="font-size:12.5px;margin:4px 0 0">3 студенттің пропускі 30 сағатқа жақын. Журнал талдаушы агенті тізімді психологқа жіберуді ұсынады.</p>
+ <p class="psub">Аттестация</p><div class="drow2"><div><b>Педагог-модератор</b><small>Келесі аттестация: 2027 · портфолио 60%</small></div>${B(5,'Толықтыру')}</div>
+ <p class="note" style="margin-top:12px">Демо: кесте, топ және сандар мысал ретінде берілген.</p>`}
+const CST={idle:['Бос','#94a3b8'],work:['Жұмыста','#16a34a'],need:['Сізді күтеді','#F5B400']};
+function cabDoc(st,p){const ag=cabAg(st),rows=p.ph.flat().map(([k,t])=>[ag[k]?ag[k][0]:k,t]);
+ return `<h3>${esc(p.t)}</h3><p class="meta">${esc(st.name)} кабинетінің агенттері дайындады</p><table><tr><th>Агент</th><th>Атқарған жұмысы</th></tr>${rows.map(([a,t])=>`<tr><td>${esc(a)}</td><td>${esc(t)}</td></tr>`).join('')}</table><h4>Нәтиже</h4><p>Құжаттың жобасы колледж үлгісімен жиналды. Тексеріп, қажет болса түзетіңіз.</p><p class="meta">Демо: агенттердің жұмысы — имитация, мазмұн үлгі бойынша.</p>`}
 function renderCab(){const r=ROLES[ME],list=STAFF.filter(canSeeCab);
- if(!cabSel||!list.includes(cabSel))cabSel=list.find(s=>s.role===ME&&(ME!=='teacher'||s.you))||list[0];
- const st=cabSel,mine=(st.role===ME&&(ME!=='teacher'||st.you)),own=AGENTS.filter(a=>mine&&(a.mine||MINE.includes(a.id)));
- $('tab-cab').innerHTML=`<div class="page">${path()}
- <div class="ph"><div><h1>${list.length>1?'Кабинеттер':'Менің кабинетім'}</h1><p>${r.lvl<=2?'Колледждің әр қызметкерінің жеке ИИ-кабинеті бар. Сіз барлық кабинетті көресіз.':r.lvl===3?'Сіз өз кабинетіңізді және бөліміңіздің кабинеттерін көресіз.':'Бұл сіздің жеке ИИ-кабинетіңіз: агенттеріңіз осында жұмыс істейді.'}</p></div></div>
- <div class="cabwrap">${list.length>1?`<nav class="blk cablist" aria-label="Қызметкерлер"><h2>Қызметкерлер<small>${esc(short(COLLEGE_LIST[PILOT][0]))}</small></h2><div class="body">${[...new Set(list.map(s=>s.grp))].map(gname=>`<p class="cabgrp">${gname}</p>`+list.filter(s=>s.grp===gname).map(s=>{const x=RI(s.role);return `<button data-s="${s.id}" class="${s===st?'on':''}"><span class="av" style="background:${x.c}">${x.ab}</span><span><b>${esc(s.name)}${s.you&&ME==='teacher'?' (сіз)':''}</b><small>${esc(x.t)}</small></span></button>`}).join('')).join('')}</div></nav>`:''}
- <div class="cabmain"><div class="cabhead"><div><h2>${esc(st.name)}</h2><p class="muted">${mine?'Тапсырма беріп, агенттердің жұмысын бақылаңыз.':'Тек көру: бұл кабинеттің иесі емессіз.'}</p></div>
-  ${own.length?`<div class="cabag"><span class="muted">Networking-тен қосылған:</span>${own.map(a=>`<span class="tagp">${esc(a.name)}</span>`).join('')}</div>`:''}</div>
-  ${NEEDS[st.set]?`<section class="blk needs"><h2>Жұмысқа керек деректер<small>Агенттер оларды басқа бөлімдерден өзі алады. Құпия деректер тек иесіне көрінеді.</small></h2><div class="body"><table class="mx"><tr><th>Дерек</th><th>Қайдан</th><th>Не үшін</th><th>Қалай</th></tr>${NEEDS[st.set].map(([d,src,why,how])=>`<tr><td>${d}</td><td>${src}</td><td>${why}</td><td><span class="how how-${how}">${{auto:'Автоматты',ask:'Сұрау арқылы',secret:'Құпия'}[how]}</span></td></tr>`).join('')}</table></div></section>`:''}
-  <iframe id="cabFrame" title="${esc(st.name)} кабинеті" class="cabframe"></iframe></div></div>
- <p class="note">Демо: қызметкерлер тізімі мен тапсырмалар мысал ретінде жасалған.</p></div>`;
- $('tab-cab').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{cabSel=STAFF.find(s=>s.id===b.dataset.s);renderCab()});
- window.__CAB=AGSET[st.set];const f=$('cabFrame');f.srcdoc=CAB_HTML.replace('<style>','<style>'+(document.querySelector('style').textContent.match(/@font-face[^}]*}/g)||[]).join('')+(mine?'':'.ctrl{display:none!important}'));
- const fit=()=>{try{const d=f.contentDocument;if(d&&d.body)f.style.height=Math.max(600,d.body.scrollHeight+4)+'px'}catch(e){}};f.onload=()=>{fit();let n=0;const iv=setInterval(()=>{fit();if(++n>20||!f.isConnected)clearInterval(iv)},700)}}
+ if(!cabSel||!list.includes(cabSel))cabSel=list.find(s=>ownCab(s))||list[0];
+ if(cabSel.set==='oku'&&!CABPEND[cabSel.id]&&cabTab!=='docs'&&cabTab!=='log')cabTab='day';if(cabSel.set!=='oku'&&cabTab==='day')cabTab='ag';
+ const st=cabSel,mine=ownCab(st),set=AGSET[st.set],x=RI(st.role),ag=cabAg(st),S=CABSTATE[st.id]||'idle',docs=store.get('shq_docs',[]).filter(d=>d.cab===st.id);
+ const own=mine?AGENTS.filter(a=>a.mine||MINE.includes(a.id)):[];
+ const navList=list.filter(s=>!cabQ||(s.name+RI(s.role).t).toLowerCase().includes(cabQ.toLowerCase()));
+ $('tab-cab').innerHTML=`<div class="cab3${list.length>1?'':' solo'}">
+ ${list.length>1?`<nav class="cabnav" aria-label="Қызметкерлер"><div class="cabnav-h"><b>Қызметкерлер</b><span class="muted">${list.length}</span><input id="cabQ" type="search" placeholder="Іздеу" value="${esc(cabQ)}" aria-label="Қызметкер іздеу"></div>
+  <div class="cabnav-b">${[...new Set(navList.map(s=>s.grp))].map(g=>`<p class="cabgrp">${g}</p>`+navList.filter(s=>s.grp===g).map(s=>{const y=RI(s.role),ss=CABSTATE[s.id]||'idle';return `<button data-s="${s.id}" class="${s===st?'on':''}"><span class="av" style="background:${y.c}">${y.ab}</span><span class="nm"><b>${esc(s.name)}${ownCab(s)?' (сіз)':''}</b><small>${esc(y.t)}</small></span><i class="sd" style="background:${CST[ss][1]}" title="${CST[ss][0]}"></i></button>`}).join('')).join('')||'<p class="muted" style="padding:8px">Табылмады</p>'}</div></nav>`:''}
+ <section class="cabstage">
+  <div class="cabtop"><span class="av" style="background:${x.c}">${x.ab}</span><div><h1>${esc(st.name)}</h1><p><span>${esc(x.t)}</span><span class="cst" style="--c:${CST[S][1]}">${CST[S][0]}</span>${mine?'':'<span class="ro">Тек көру</span>'}</p></div>
+   <div class="cabkpi"><span><b>${docs.length}</b> құжат</span><span><b>${docs.reduce((a,d)=>a+(d.saved||0),0)}</b> мин үнемделді</span><span><b>${Object.keys(ag).length+own.length}</b> агент</span></div></div>
+  <div class="cabview"><iframe id="cabFrame" title="${esc(st.name)} кабинеті"></iframe>
+   <div class="cmdwrap">${mine?`<div class="cmdrow"><div class="dd"><button id="cabPick">Автоматтандыру ▾</button><div class="menu">${set.presets.map((p,i)=>`<button data-p="${i}">${esc(autoOf(st,i)[0])}</button>`).join('')}<button data-p="-1">Еркін тапсырма</button></div></div><input id="cabTxt" placeholder="Алдымен автоматтандыруды таңдаңыз немесе тапсырманы жазыңыз"><button class="pri" id="cabGo">Жіберу</button><div class="dd"><button id="cabSp">1×</button><div class="menu spm">${[1,2,4].map(v=>`<button data-sp="${v}">${v}×</button>`).join('')}</div></div></div><div id="cabBusy" class="cabbusy"></div>`:`<div class="cmdrow ro"><span>Бұл кабинетте тапсырманы иесі береді. Сіз агенттердің жұмысын көресіз.</span></div>`}</div></div>
+ </section>
+ <aside class="cabside"><div class="tabs2" role="tablist">${(st.set==='oku'?[['day','Бүгін']]:[]).concat([['ag','Агенттер'],['data','Деректер'],['docs','Құжаттар'],['log','Журнал']]).map(([k,t])=>`<button role="tab" data-t="${k}" class="${cabTab===k?'on':''}">${t}</button>`).join('')}</div><div class="cabtab" id="cabTab"></div></aside></div>`;
+ const T=$('tab-cab');
+ T.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{cabSel=STAFF.find(s=>s.id===b.dataset.s);renderCab()});
+ const q=$('cabQ');if(q)q.oninput=()=>{cabQ=q.value;const pos=q.selectionStart;renderCab();const n=$('cabQ');n.focus();n.setSelectionRange(pos,pos)};
+ T.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{cabTab=b.dataset.t;T.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('on',x===b));cabSide()});
+ T.querySelectorAll('.dd > button').forEach(b=>b.onclick=e=>{e.stopPropagation();const d=b.parentElement,o=!d.classList.contains('open');T.querySelectorAll('.dd').forEach(z=>z.classList.remove('open'));d.classList.toggle('open',o)});
+ const F=$('cabFrame'),W=()=>F.contentWindow&&F.contentWindow.CAB,go=fn=>{const c=W();if(!c||!c.ready()){$('cabBusy').textContent='Кабинет әлі жүктелуде…';return}if(CABSTATE[st.id]==='work'){$('cabBusy').textContent='Агенттер жұмыс істеп жатыр. Аяқталғанын күтіңіз.';return}fn(c)};
+ const start=(p,q)=>go(c=>{CABSTATE[st.id]='work';CABPEND[st.id]={p,q,log:''};cabTab='log';cabRefresh();typeof p==='number'?c.run(p,q?autoOf(st,p)[0]+': '+q:''):c.text(p)});
+ let pick=-1;const choose=(i,pre)=>{pick=i;const t=$('cabTxt'),pb=$('cabPick');if(!t)return;const a=i>=0?autoOf(st,i):['Автоматтандыру','Өз тапсырмаңызды жазыңыз'];pb.textContent=(i>=0?a[0]:'Еркін тапсырма')+' ▾';pb.classList.toggle('sel',i>=0);t.placeholder=a[1];t.value=pre||'';$('cabBusy').textContent=i>=0?'Енді деректерді жазып, «Жіберу» басыңыз.':'';t.focus()};
+ T.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{T.querySelectorAll('.dd').forEach(z=>z.classList.remove('open'));choose(+b.dataset.p)});
+ window.__cabPick=choose;
+ T.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{const c=W();c&&c.speed(+b.dataset.sp);$('cabSp').textContent=b.dataset.sp+'×';T.querySelectorAll('.dd').forEach(z=>z.classList.remove('open'))});
+ const go2=$('cabGo');if(go2)go2.onclick=()=>{const v=$('cabTxt').value.trim();if(!v){$('cabTxt').focus();$('cabBusy').textContent=pick>=0?'Деректерді жазыңыз: '+autoOf(st,pick)[1]:'Алдымен тапсырманы жазыңыз.';return}if(pick>=0){start(pick,v);choose(-1)}else start(v)};
+ const tx=$('cabTxt');if(tx)tx.onkeydown=e=>{if(e.key==='Enter')go2.click()};
+ window.__cabEvt=e=>{if(e.type==='busy'){const b=$('cabBusy');if(b&&e.text)b.textContent=e.text;return}const pd=CABPEND[st.id];if(!pd)return;if(e.type==='log'){pd.log=e.html;if(cabTab==='log')cabSide()}
+  if(e.type==='done'){const p=typeof pd.p==='number'?{...set.presets[pd.p],t:autoOf(st,pd.p)[0]+(pd.q?': '+pd.q:'')}:{t:pd.p,ph:[[['res','деректерді жинады'],['lib','колледж құжаттарынан үлгі тапты']],[['wri','құжатты жазды']]]};
+   pd.doc={title:p.t,html:cabDoc(st,p),saved:45};CABSTATE[st.id]='need';cabTab='docs';cabRefresh()}};
+ window.__CAB={...set,ag};F.srcdoc=CAB_HTML.replace('<style>','<style>'+(document.querySelector('style').textContent.match(/@font-face[^}]*}/g)||[]).join(''));
+ window.__cabStart=start;cabSide();
+}
+/* обновить статус, KPI и панель без перезагрузки 3D */
+function cabRefresh(){const st=cabSel,T=$('tab-cab');if(!st||!T.querySelector('.cab3'))return;const S=CABSTATE[st.id]||'idle',docs=store.get('shq_docs',[]).filter(d=>d.cab===st.id);
+ const c=T.querySelector('.cst');if(c){c.textContent=CST[S][0];c.style.setProperty('--c',CST[S][1])}
+ const sd=T.querySelector(`[data-s="${st.id}"] .sd`);if(sd)sd.style.background=CST[S][1];
+ const k=T.querySelectorAll('.cabkpi b');if(k.length){k[0].textContent=docs.length;k[1].textContent=docs.reduce((a,d)=>a+(d.saved||0),0)}
+ T.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('on',x.dataset.t===cabTab));const b=$('cabBusy');if(b)b.textContent='';cabSide()}
+function cabSide(){const st=cabSel,el=$('cabTab');if(!el||!st)return;const mine=ownCab(st),ag=cabAg(st),set=AGSET[st.set],pd=CABPEND[st.id];
+ if(cabTab==='day'){el.innerHTML=teacherDay(st);el.querySelectorAll('[data-run]').forEach(b=>b.onclick=()=>window.__cabPick&&window.__cabPick(+b.dataset.run,b.dataset.pre||''));return}
+ if(cabTab==='ag'){const own=mine?AGENTS.filter(a=>a.mine||MINE.includes(a.id)):[];
+  el.innerHTML=Object.entries(ag).map(([k,[n,d]])=>`<div class="agrow"><span class="ai">${n[0]}</span><div><b>${esc(n)}</b><small>${esc(d)}</small></div></div>`).join('')+(st.set==='oku'?`<p class="psub">Қосымша агенттер</p>`+EXTRA_AG.map(([n,d])=>`<div class="agrow"><span class="ai" style="background:#F1EFE8;color:#4A5563">${n[0]}</span><div><b>${esc(n)}</b><small>${esc(d)}</small></div></div>`).join(''):'')+(own.length?`<p class="psub">Networking-тен қосылған</p>`+own.map(a=>`<div class="agrow"><span class="ai" style="background:${a.color}22;color:${a.color}">${esc(a.name[0])}</span><div><b>${esc(a.name)}</b><small>${esc(a.cat)}</small></div></div>`).join(''):'')}
+ if(cabTab==='data')el.innerHTML=NEEDS[st.set]?NEEDS[st.set].map(([d,src,why,how])=>`<div class="drow2"><div><b>${d}</b><small>${src} · ${why}</small></div><span class="how how-${how}">${{auto:'Автоматты',ask:'Сұрау арқылы',secret:'Құпия'}[how]}</span></div>`).join(''):'<p class="muted">Бұл рөлге деректер кестесі әзірге жоқ.</p>';
+ if(cabTab==='log')el.innerHTML=pd&&pd.log?`<div class="cablog">${pd.log}</div>`:'<p class="muted">Тапсырма берілгенде агенттердің әрекеті осында жазылады.</p>';
+ if(cabTab==='docs'){const docs=store.get('shq_docs',[]).filter(d=>d.cab===st.id);
+  el.innerHTML=(pd&&pd.doc?`<div class="need"><div class="needh"><b>${esc(pd.doc.title)}</b><span class="dstate need">Сізді күтеді</span></div>${mine?`<div class="needb"><button class="btn pri" id="cabOk">Бекіту</button><button class="btn" id="cabFix">Түзету</button></div>`:'<p class="muted" style="margin:6px 0 0">Кабинет иесінің шешімін күтуде.</p>'}<div class="docview mini">${pd.doc.html}</div></div>`:'')+
+  (docs.length?`<p class="psub">Бекітілген құжаттар</p>`+docs.map(d=>`<button class="docli" data-d="${d.id}"><b>${esc(d.title)}</b><small>${esc(d.date)} · ${d.saved||0} мин</small></button>`).join(''):(pd&&pd.doc?'':'<p class="muted">Әзірге бекітілген құжат жоқ.</p>'));
+  const ok=$('cabOk');if(ok)ok.onclick=()=>{const d=pd.doc;window.dispatchEvent(new CustomEvent('shq-done',{detail:{text:d.title,title:d.title,doc:d.html,saved:d.saved,cab:st.id}}));delete CABPEND[st.id];CABSTATE[st.id]='idle';toast('Құжат бекітілді және «Құжаттар» бөліміне сақталды');cabRefresh()};
+  const fx=$('cabFix');if(fx)fx.onclick=()=>{const p=pd.p;delete CABPEND[st.id];CABSTATE[st.id]='idle';toast('Агенттер құжатты қайта өңдейді');cabRefresh();const q=pd.q;setTimeout(()=>window.__cabStart&&window.__cabStart(p,q),300)};
+  el.querySelectorAll('.docli').forEach(b=>b.onclick=()=>{const d=docs.find(z=>z.id===b.dataset.d);modal(`<div><h2>${esc(d.title)}</h2><p>${esc(d.date)} · Бекітілді</p></div>`,`<div class="docview">${d.html}</div>`)})}}
+/* Құжаттар: бекітілген құжаттар кітапханасы */
+function renderDocs(){const r=ROLES[ME],all=store.get('shq_docs',[]),list=all.filter(d=>canSee(ME,{lvl:d.lvl,role:d.role,col:d.col,dept:d.dept}));
+ $('tab-docs').innerHTML=`<div class="page">${path()}<div class="ph"><div><h1>Құжаттар</h1><p>Агенттер дайындап, иесі бекіткен құжаттар. Сіз өз деңгейіңіз бен төмендегілердің құжаттарын көресіз.</p></div><button class="btn pri" id="docNew">Жаңа құжат</button></div>
+ <section class="blk"><div class="body">${list.length?`<table class="mx"><tr><th>Құжат</th><th>Кім бекітті</th><th>Күні</th><th>Үнемделді</th></tr>${list.map(d=>`<tr class="drow" data-d="${d.id}" tabindex="0"><td><b>${esc(d.title)}</b></td><td>${esc(ROLES[d.role]?.t||d.role)}</td><td>${esc(d.date)}</td><td>${d.saved?d.saved+' мин':''}</td></tr>`).join('')}</table>`:
+ `<p class="empty">Әзірге бекітілген құжат жоқ. «Жаңа құжат» басып, 3D-ғимаратта тапсырма беріңіз: агенттер жұмысын бітіргенде құжатты «Бекіту» керек.</p>`}</div></section>
+ <p class="note">Құжаттар осы браузерде сақталады (демо).</p></div>`;
+ $('docNew').onclick=()=>tab('map');
+ $('tab-docs').querySelectorAll('.drow').forEach(tr=>{const o=()=>{const d=all.find(x=>x.id===tr.dataset.d);modal(`<div><h2>${esc(d.title)}</h2><p>${esc(ROLES[d.role]?.t||'')}, ${esc(d.date)} · Бекітілді</p></div>`,`<div class="docview">${d.html}</div>`)};tr.onclick=o;tr.onkeydown=e=>{if(e.key==='Enter')o()}})}
 /* Networking */
 let netTab='all',cat='Барлығы',aud='',q='',bundle=null;
 const statusBadge=a=>a.status==='pub'?'':a.status==='mod'?'<span class="status st-mod">Тексеруде</span>':'<span class="status st-rej">Қайтарылды</span>';

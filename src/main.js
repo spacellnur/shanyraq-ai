@@ -132,19 +132,30 @@ const PAPERS=[];
 function fly(A,B){return new Promise(r=>{const m=box(.26,.02,.34,'#ffffff',A.x,A.y+1.4,A.z,scene);PAPERS.push({m,A:A.clone(),B:B.clone(),t:0,r})})}
 const capPos=()=>capsule.position.clone().setY(capsule.position.y-1.2);
 let capTarget=null;
-let capQ=Promise.resolve();
+let capQ=Promise.resolve();let pending=null;
 function capsuleTo(lv){const p=capQ.then(()=>new Promise(r=>{capTarget={y:lv*H+.7,r}}));capQ=p;return p}
 
 /* ---------- метки ---------- */
-const FLAB={};FLOORS.forEach(f=>{const d=document.createElement('div');d.className='room';d.innerHTML=`${f.lv<0?'−1':f.lv} · ${f.kz} <span>· ${f.ru}</span>`;
- d.onclick=()=>focusFloor(f.lv,true);labelsEl.appendChild(d);FLAB[f.lv]={d,v:new THREE.Vector3(-10.2,f.lv*H+3.1,5.2)}});
+const FLAB={};FLOORS.forEach(f=>{const d=document.createElement('div');d.className='room';d.innerHTML=`<i class="dot"></i>${f.lv<0?'−1':f.lv} · ${f.kz}<span class="sub"> · ${f.ru}</span>`;d.title=f.ru;
+ const st=document.createElement('em');st.className='fst';d.appendChild(st);
+ d.onclick=()=>focusFloor(f.lv,true);labelsEl.appendChild(d);FLAB[f.lv]={d,st,v:new THREE.Vector3(-10.2,f.lv*H+3.1,5.2)};
+ const fr=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(20.8,2.9,10.8)),new THREE.LineBasicMaterial({color:'#f5b400'}));fr.position.y=1.45;fr.visible=false;GROUPS[f.lv].add(fr);FLAB[f.lv].fr=fr});
+const WAIT=new Set();
+function floorState(lv){if(WAIT.has(lv))return['Сізді күтеді','need'];if(Object.values(AG).some(a=>a.lv===lv&&a.id!=='teacher'&&!['rest','idle'].includes(a.st)&&!a.wander))return['Жұмыста','work'];return['Тапсырма жоқ','idle']}
+/* табло на крыше */
+const ROOF=new THREE.Mesh(new THREE.PlaneGeometry(13,13*200/1024),new THREE.MeshBasicMaterial({transparent:true,side:THREE.DoubleSide}));ROOF.position.set(0,6*H+1.6,0);ROOF.rotation.y=Math.atan2(OFF.x,OFF.z);COL.add(ROOF);
+box(.15,1.6,.15,'#475569',-3.5,6*H-.2,0,COL);box(.15,1.6,.15,'#475569',3.5,6*H-.2,0,COL);
+let roofKey='';function roofUpd(){const n=Object.keys(AG).length-1,wk=Object.values(AG).filter(a=>a.id!=='teacher'&&['work','think','wait'].includes(a.st)).length,nw=WAIT.size;
+ const k=n+'|'+wk+'|'+nw;if(k===roofKey)return;roofKey=k;if(ROOF.material.map)ROOF.material.map.dispose();
+ ROOF.material.map=signTex(`7 ҚАБАТ · ${n} АГЕНТ`,nw?`${nw} қабат сізді күтеді`:wk?`${wk} агент жұмыста`:'Барлығы тапсырма күтуде','#0E2A47',nw?'#F5B400':'#ffffff');ROOF.material.needsUpdate=true}
+roofUpd();
 
 /* ---------- камера ---------- */
 let focus=null,view='col',camGoal={t:new THREE.Vector3(0,2*H,0),zoom:1,off:OFF},camAnim=0;
 function focusFloor(lv,user){if(view!=='col')setView('col');if(user)follow=false;$('follow').classList.toggle('sel',follow);
  focus=lv;FLOORS.forEach(f=>GROUPS[f.lv].visible=lv===null||f.lv<=lv);
- camGoal={t:lv===null?new THREE.Vector3(0,2*H,0):new THREE.Vector3(1.5,lv*H+.4,0),zoom:lv===null?1:Math.min(2.2,(cam.right-cam.left)/22),off:OFF};camAnim=1;
- document.querySelectorAll('#floors button').forEach(b=>b.classList.toggle('sel',String(lv)===b.dataset.lv))}
+ camGoal={t:lv===null?new THREE.Vector3(1.2,2.5*H,0):new THREE.Vector3(1.5,lv*H+.4,0),zoom:lv===null?Math.min(1.05,(cam.top-cam.bottom)/54):Math.min(2.2,(cam.right-cam.left)/22),off:OFF};camAnim=1;
+ document.querySelectorAll('#floors button').forEach(b=>b.classList.toggle('sel',String(lv)===b.dataset.lv));floorCards()}
 function camFollow(lv){if(follow)focusFloor(lv,false)}
 
 /* ---------- кадр ---------- */
@@ -165,7 +176,7 @@ function upd(a,dt,t){const f=a.fig,R=f.root;
   else if(a.st==='rest'){B.head.rotateX(.22+Math.sin(t*1.5)*.05)}}}
 const V=new THREE.Vector3();
 function place(el,v,w,h){V.copy(v).project(cam);el.style.transform=`translate(${((V.x+1)/2*w).toFixed(1)}px,${((1-V.y)/2*h).toFixed(1)}px) translate(-50%,-100%)`}
-function resize(){const w=sceneEl.clientWidth||Math.min(1156,innerWidth-24),h=Math.round(w<600?Math.max(520,w*1.45):Math.min(760,Math.max(480,w*.7)));sceneEl.style.height=h+'px';renderer.setSize(w,h);
+function resize(){const w=sceneEl.clientWidth||Math.min(1156,innerWidth-24),ab=document.querySelector('.appbar'),top=document.fullscreenElement?0:(innerWidth<900&&ab?ab.offsetHeight:0),h=Math.max(460,innerHeight-top);sceneEl.style.height=h+'px';renderer.setSize(w,h);
  const asp=w/h,view=Math.max(44,30/asp);Object.assign(cam,{left:-view*asp/2,right:view*asp/2,top:view/2,bottom:-view/2});cam.updateProjectionMatrix()}
 addEventListener('resize',resize);resize();
 controls.target.copy(camGoal.t);cam.position.copy(camGoal.t).add(OFF);cam.lookAt(controls.target);
@@ -182,10 +193,12 @@ const clock=new THREE.Clock();
   const want=controls.target.clone().add(camGoal.off);cam.position.lerp(want,ck);if(controls.target.distanceTo(camGoal.t)<.02&&Math.abs(cam.zoom-camGoal.zoom)<.005)camAnim=0}
  ANIM.forEach(f=>f(t,dt*speed));ambient(dt);controls.update();renderer.render(scene,cam);
  const w=sceneEl.clientWidth,h=sceneEl.clientHeight;
- for(const id in AG){const a=AG[id],vis=view==='col'&&GROUPS[a.lv].visible&&(focus!==null?a.lv===focus:a.st!=='rest'||id==='teacher');a.lab.style.display=vis?'':'none';
+ for(const id in AG){const a=AG[id],vis=view==='col'&&GROUPS[a.lv].visible&&(focus!==null?a.lv===focus:(['work','think','wait'].includes(a.st)||(a.st==='walk'&&!a.wander&&busy)||(id==='teacher'&&busy)));a.lab.style.display=vis?'':'none';
   if(vis){a.fig.B.head.getWorldPosition(V);V.y+=.95;place(a.lab,V,w,h)}}
  FLOORS.forEach(f=>{const L=FLAB[f.lv],vis=view==='col'&&GROUPS[f.lv].visible;L.d.style.display=vis?'':'none';if(vis)place(L.d,L.v,w,h);
-  L.d.classList.toggle('live',Object.values(AG).some(a=>a.lv===f.lv&&a.id!=='teacher'&&a.st!=='rest'))});
+  const [stt,cls]=floorState(f.lv);const rb=$("floors").querySelector(`[data-lv="${f.lv}"]`);if(rb&&rb.dataset.st!==cls)rb.dataset.st=cls;if(L.st.textContent!==stt){L.st.textContent=cls==='need'?stt:'';L.st.className='fst '+cls;L.d.dataset.st=cls}
+  L.d.classList.toggle('live',cls==='work');L.d.classList.toggle('need',cls==='need');L.fr.visible=cls==='need'&&Math.sin(t*4)>-.6});
+ roofUpd();ROOF.visible=view==='col'&&(focus===null||focus>=5);
  $('hAct').textContent=Object.values(AG).filter(a=>a.st==='work').length;netFrame(dt,t,w,h)})();
 
 /*NET*/
@@ -219,7 +232,7 @@ async function floorJob(lv,tk){
  await fly(wpos('h'+lv),capPos());setState('h'+lv,'rest','');log(`${lv}-қабат: нәтиже төмен жіберілді`)}
 async function run(p){
  if(busy){$('busy').textContent='Орталық бос емес. Ағымдағы тапсырма аяқталғанын күтіңіз.';return}
- busy=true;$('busy').textContent='';$('log').innerHTML='';t0=performance.now();$('doc').hidden=true;
+ busy=true;$('busy').textContent='';$('log').innerHTML='';panel(true,'Жұмыс журналы');t0=performance.now();$('doc').hidden=true;WAIT.clear();pending=null;
  log('Тапсырма: «'+esc(p.text)+'»');camFollow(0);
  AG.teacher.emote=false;await goTo('teacher','counter');
  setState('rec','think','қабаттарды анықтауда');await sleep(1800);
@@ -231,10 +244,9 @@ async function run(p){
  await capsuleTo(0);camFollow(0);await fly(capPos(),wpos('rec'));
  setState('rec','think','құжатты тексеруде');await sleep(1500);
  await fly(wpos('rec'),wpos('teacher'));setState('rec','rest','');
- AG.teacher.emote=true;doneCount++;window.dispatchEvent(new CustomEvent('shq-done',{detail:{text:p.title||p.text,saved:p.saved||0,floors:p.floors}}));savedMin+=p.saved;$('hDone').textContent=doneCount;
- $('hSaved').textContent=savedMin>=60?`${Math.floor(savedMin/60)} сағ ${savedMin%60} мин`:`${savedMin} мин`;
- log(`Дайын. Оқытушы ~${p.saved} мин үнемдеді.`,'fin');
- $('docbody').innerHTML=p.doc;$('doctitle').textContent=p.title;$('doc').hidden=false;
+ p.floors.forEach(l=>WAIT.add(l));pending=p;
+ log('Құжат дайын. Тексеріп, бекітіңіз: «Бекіту» немесе «Түзету».','fin');
+ $('docbody').innerHTML=p.doc;$('doctitle').textContent=p.title;$('docstate').textContent='Сізді күтеді';$('docstate').className='dstate need';$('docact').hidden=false;$('doc').hidden=false;
  await sleep(2500);AG.teacher.emote=false;busy=false;Object.values(AG).forEach(x=>x.wander=false)}
 
 /* ---------- интерфейс ---------- */
@@ -244,12 +256,29 @@ $('runc').onclick=()=>{const q=$('custom').value.trim();if(!q){$('custom').focus
  const floors=[...new Set(r.filter(([re])=>re.test(q)).map(x=>x[1]))];if(!floors.length)floors.push(1);
  run({text:q,floors,saved:45*floors.length,title:'Дайын құжат',doc:DOCS.custom(q,floors)})};
 $('custom').oninput=()=>{if(!busy)$('busy').textContent=''};
-[1,2,4].forEach(v=>$('sp'+v).onclick=()=>{speed=v;[1,2,4].forEach(u=>$('sp'+u).classList.toggle('sel',u===v))});
+[1,2,4].forEach(v=>$('sp'+v).onclick=()=>{speed=v;$('spBtn').textContent=v+'×';[1,2,4].forEach(u=>$('sp'+u).classList.toggle('sel',u===v))});
 $('follow').onclick=()=>{follow=!follow;$('follow').classList.toggle('sel',follow)};
 $('docclose').onclick=()=>{$('doc').hidden=true};
-const fb=$('floors');[['Бүкіл ғимарат',null]].concat([...FLOORS].reverse().map(f=>[f.lv<0?'−1':String(f.lv),f.lv])).forEach(([t,lv])=>{const b=document.createElement('button');b.textContent=t;b.dataset.lv=String(lv);b.onclick=()=>focusFloor(lv,true);fb.appendChild(b)});
+$('docok').onclick=()=>{const p=pending;if(!p)return;pending=null;WAIT.clear();$('docact').hidden=true;$('docstate').textContent='Бекітілді';$('docstate').className='dstate ok';
+ doneCount++;savedMin+=p.saved;$('hDone').textContent=doneCount;$('hSaved').textContent=savedMin>=60?`${Math.floor(savedMin/60)} сағ ${savedMin%60} мин`:`${savedMin} мин`;
+ log(`Оқытушы құжатты бекітті. ~${p.saved} мин үнемделді. Құжат «Құжаттар» бөліміне сақталды.`,'fin');
+ window.dispatchEvent(new CustomEvent('shq-done',{detail:{text:p.title||p.text,saved:p.saved||0,floors:p.floors,doc:p.doc,title:p.title}}))};
+$('docfix').onclick=()=>{const p=pending;if(!p||busy)return;pending=null;WAIT.clear();$('docact').hidden=true;$('doc').hidden=true;
+ log('Оқытушы құжатты түзетуге қайтарды. Агенттер қайта өңдейді.','err');run(p)};
+const fb=$('floors');[['Бүкіл ғимарат',null]].concat([...FLOORS].reverse().map(f=>[f.kz,f.lv])).forEach(([t,lv])=>{const b=document.createElement('button');
+ b.innerHTML=lv===null?`<span class="nm">${t}</span>`:`<span class="n">${lv<0?'−1':lv}</span><span class="nm">${t}</span><i class="dot"></i>`;if(lv===null)b.className='all';b.title=lv===null?t:FL[lv].ru;
+ b.dataset.lv=String(lv);b.onclick=()=>{focusFloor(lv,true);if(lv!==null)panel(true,`${lv<0?'−1':lv} · ${FL[lv].kz}`)};fb.appendChild(b)});
+/* правая панель, меню, вид */
+function panel(open,title){sceneEl.classList.toggle('has-panel',open);if(title)$('pTitle').textContent=title}
+$('pClose').onclick=()=>panel(false);$('pOpen').onclick=()=>panel(true);
+new MutationObserver(()=>{if(!$('doc').hidden)panel(true,'Дайын құжат')}).observe($('doc'),{attributes:true,attributeFilter:['hidden']});
+document.querySelectorAll('.dd > button').forEach(b=>b.onclick=e=>{e.stopPropagation();const d=b.parentElement,o=!d.classList.contains('open');document.querySelectorAll('.dd').forEach(x=>x.classList.remove('open'));d.classList.toggle('open',o)});
+document.addEventListener('click',()=>document.querySelectorAll('.dd.open').forEach(x=>x.classList.remove('open')));
+$('fitBtn').onclick=()=>{if(view==='col')focusFloor(null,true);else setView(view)};
+$('fsBtn').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():sceneEl.requestFullscreen()}catch(e){}};document.addEventListener('fullscreenchange',()=>setTimeout(resize,60));
+controls.addEventListener('start',()=>sceneEl.classList.add('orbit'));controls.addEventListener('end',()=>sceneEl.classList.remove('orbit'));
 focusFloor(null,false);follow=true;$('follow').classList.add('sel');
-function floorCards(){const el=$('fcards');if(!el)return;el.innerHTML=[...FLOORS].reverse().map(f=>{const ags=Object.values(AG).filter(a=>a.lv===f.lv&&a.id!=='teacher');
+function floorCards(){const el=$('fcards');if(!el)return;el.innerHTML=[...FLOORS].reverse().filter(f=>focus===null||f.lv===focus).map(f=>{const ags=Object.values(AG).filter(a=>a.lv===f.lv&&a.id!=='teacher');
  return `<div class="card" style="border-left-color:${f.ac}"><div class="nm">${f.lv<0?'−1':f.lv} · ${f.kz} <span>${f.ru}</span></div>${ags.map(a=>`<div class="ag"><i style="background:${ST[a.st][1]}"></i><b>${a.name}</b> — ${a.role}${a.st!=='rest'&&a.task?` <em>· ${esc(a.task)}</em>`:''}</div>`).join('')}</div>`}).join('')}
 floorCards();
 setView('kz');

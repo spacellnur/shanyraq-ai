@@ -155,3 +155,44 @@ table.mx th{font-size:13px;color:var(--mut);font-weight:500;border-top:0}
 .cabgrp{margin:10px 8px 4px;font-size:12.5px;font-weight:500;color:var(--mut)}.cabgrp:first-child{margin-top:2px}
 .needs{margin-bottom:14px}.how{font-size:12.5px;border-radius:4px;padding:1px 7px;white-space:nowrap}
 .how-auto{background:#E3F4EA;color:var(--ok)}.how-ask{background:#FFF4D6;color:var(--warn)}.how-secret{background:#FBE7E7;color:var(--bad)}
+.drow{cursor:pointer}.drow:hover td{background:#F8FAFB}.drow td b{font-weight:500;color:var(--link)}
+.docview{font-family:"Times New Roman",Georgia,serif;font-size:15px}.docview table{border-collapse:collapse;width:100%;margin:6px 0}.docview td,.docview th{border:1px solid #cfd4dd;padding:4px 7px;text-align:left;vertical-align:top}.docview th{background:#f3f4f7}.docview h3{font-family:'Golos Text',system-ui,sans-serif}
+.cabagents{display:flex;flex-wrap:wrap;gap:2px;margin:-4px 0 14px}
+/* Кабинеттер v2 */
+#tab-cab{height:100vh}
+.cab3{display:grid;grid-template-columns:250px minmax(0,1fr) 320px;height:100vh;background:var(--canvas)}
+.cab3.solo{grid-template-columns:minmax(0,1fr) 320px}
+.cabnav{background:#fff;border-right:1px solid var(--rule);display:flex;flex-direction:column;min-height:0}
+.cabnav-h{padding:14px 14px 10px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;border-bottom:1px solid var(--rule2)}.cabnav-h b{font-size:15px}.cabnav-h input{width:100%;font:inherit;font-size:14px;border:1px solid #C9D0D7;border-radius:var(--r);padding:7px 10px;margin-top:4px}
+.cabnav-b{overflow:auto;padding:4px 8px 12px;flex:1}
+.cabnav-b button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;background:none;border:0;border-radius:8px;padding:7px 8px;cursor:pointer;color:var(--ink)}
+.cabnav-b button:hover{background:var(--canvas)}.cabnav-b button.on{background:#E7EEF5}
+.cabnav-b .av{width:30px;height:30px;font-size:11px}.cabnav-b .nm{flex:1;min-width:0}.cabnav-b b{display:block;font-weight:500;font-size:13.5px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cabnav-b small{font-size:12px;color:var(--mut)}
+.sd{width:8px;height:8px;border-radius:50%;flex:none}
+.cabstage{display:flex;flex-direction:column;min-width:0;min-height:0}
+.cabtop{display:flex;align-items:center;gap:12px;padding:12px 18px;background:#fff;border-bottom:1px solid var(--rule)}
+.cabtop h1{margin:0;font-size:18px;font-weight:600;line-height:1.25}.cabtop p{margin:2px 0 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--ink2)}
+.cst{display:inline-flex;align-items:center;gap:6px;font-weight:500;color:var(--ink)}.cst::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--c)}
+.ro{font-size:12px;background:var(--canvas);border:1px solid var(--rule);border-radius:4px;padding:1px 7px}
+.cabkpi{margin-left:auto;display:flex;gap:16px;font-size:13px;color:var(--ink2)}.cabkpi b{color:var(--ink);font-weight:600}
+.cabview{position:relative;flex:1;min-height:0}
+#cabFrame{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.cmdwrap{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:min(620px,calc(100% - 32px));display:flex;flex-direction:column;align-items:center;gap:6px;z-index:3}
+.cmdrow.ro{justify-content:center;padding:10px 14px;font-size:13.5px;color:var(--ink2)}
+.cabbusy{font-size:12.5px;background:#FFF7DB;color:#7a5600;border-radius:8px;padding:5px 10px}.cabbusy:empty{display:none}
+.cabside{background:#fff;border-left:1px solid var(--rule);display:flex;flex-direction:column;min-height:0}
+.tabs2{display:flex;border-bottom:1px solid var(--rule);padding:0 8px}.tabs2 button{flex:1;font:inherit;font-size:13.5px;background:none;border:0;border-bottom:2px solid transparent;padding:13px 4px 11px;color:var(--ink2);cursor:pointer}.tabs2 button.on{color:var(--ink);font-weight:500;border-color:var(--navy)}
+.cabtab{overflow:auto;padding:12px 14px 16px;flex:1}
+.agrow{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--rule2)}.agrow:first-child{border-top:0}.agrow b{display:block;font-weight:500;font-size:14px}.agrow small{font-size:12.5px;color:var(--mut)}
+.ai{width:30px;height:30px;border-radius:8px;background:#E7EEF5;color:var(--navy);display:grid;place-items:center;font-weight:600;font-size:13px;flex:none}
+.psub{font-size:12.5px;font-weight:500;color:var(--mut);margin:14px 0 4px}
+.drow2{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--rule2)}.drow2:first-child{border-top:0}.drow2 b{display:block;font-weight:500;font-size:13.5px}.drow2 small{font-size:12px;color:var(--mut)}
+.cablog{font:12px/1.6 ui-monospace,Consolas,monospace}.cablog div{border-bottom:1px solid #f0f1f4}.cablog .t{color:#9aa0b0;margin-right:6px}.cablog .fin{color:var(--ok);font-weight:600}
+.need{border:1px solid #F5B400;background:#FFFBEB;border-radius:10px;padding:10px 12px}.needh{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.needh b{font-size:14px;font-weight:600}.needb{display:flex;gap:6px;margin:8px 0}
+.docview.mini{font-size:13px;max-height:320px;overflow:auto;background:#fff;border-radius:6px;padding:6px 8px;margin-top:6px}
+.docli{display:block;width:100%;text-align:left;font:inherit;background:none;border:0;border-top:1px solid var(--rule2);padding:9px 0;cursor:pointer}.docli b{display:block;font-weight:500;font-size:13.5px;color:var(--link)}.docli small{font-size:12px;color:var(--mut)}
+@media (max-width:1200px){.cab3{grid-template-columns:200px minmax(0,1fr) 280px}.cab3.solo{grid-template-columns:minmax(0,1fr) 280px}}
+@media (max-width:900px){#tab-cab{height:auto}.cab3,.cab3.solo{grid-template-columns:1fr;height:auto}.cabnav{max-height:220px;border-right:0;border-bottom:1px solid var(--rule)}.cabstage{height:78vh}.cabside{display:flex;height:60vh;border-left:0;border-top:1px solid var(--rule)}.cabkpi{display:none}}
+.lesson{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--rule2)}.lesson:first-of-type{border-top:0}.lesson .lt{font-size:13px;font-weight:600;color:var(--navy);width:42px;flex:none}.lesson div{flex:1;min-width:0}.lesson b{display:block;font-weight:500;font-size:13.5px}.lesson small{font-size:12px;color:var(--mut)}
+.cabtab .btn.sm{padding:5px 9px;font-size:12.5px;flex:none}
+.cmdrow #cabPick.sel{background:var(--navy);color:#fff;border-radius:8px;padding:6px 10px}

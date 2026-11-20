@@ -120,7 +120,8 @@ function showRegHQ(){$('doctitle').textContent='Түркістан облысы 
 const NETCHIPS=[['Есеп сұрау: сабаққа қатысу','#f59e0b',()=>netRun('report')],['Жаңа үлгіні тарату','#14b8a6',()=>netRun('standard')]];
 function renderChips(){const el=$('chips');el.innerHTML='';
  const list=view==='col'?PRESETS.map(p=>[p.chip,FL[p.floors[0]].ac,()=>run(p)]):NETCHIPS.concat(view==='reg'?[['Пилот колледжге кіру','#a855f7',()=>openCollege(COLLEGES[2])]]:[]);
- list.forEach(([t,c,fn])=>{const b=document.createElement('button');b.innerHTML=`<i style="background:${c}"></i>${t}`;b.onclick=fn;el.appendChild(b)});
+ list.forEach(([t,c,fn])=>{const b=document.createElement('button');b.innerHTML=`<i style="background:${c}"></i>${t}`;b.onclick=()=>{document.querySelectorAll('.dd.open').forEach(x=>x.classList.remove('open'));fn()};el.appendChild(b)});
+ $('ddBtn').textContent=view==='col'?'Тапсырмалар ▾':'Әрекеттер ▾';$('spBtn').parentElement.style.display=view==='col'?'':'none';
  ['custom','runc'].forEach(id=>$(id).style.display=view==='col'?'':'none');
  $('hint').textContent=view==='kz'?'Облысты басыңыз':view==='reg'?(selDist?selDist+': колледжді басыңыз':'Санды басыңыз: аудан ашылады'):'';
  if(view==='reg'&&selDist){const b=document.createElement('button');b.textContent='Барлық облыс';b.onclick=()=>setView('reg');el.prepend(b)}}
