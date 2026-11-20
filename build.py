@@ -55,7 +55,15 @@ def build_cab():
         s=s.replace(a,b)
     # агенты и сценарии под роль владельца кабинета
     s=s.replace("const ST={work:","if(CFG.ag)for(const k in CFG.ag)if(AG[k]){AG[k].n=CFG.ag[k][0];AG[k].r=CFG.ag[k][1]}\nconst ST={work:",1)
-    s=s.replace("const sel=$('preset');PRESETS.forEach","if(CFG.presets){PRESETS.length=0;PRESETS.push(...CFG.presets)}\nconst sel=$('preset');PRESETS.forEach",1)
+    s=s.replace("const sel=$('preset');PRESETS.forEach","if(CFG.presets){PRESETS.length=0;PRESETS.push(...CFG.presets)}window.__P=PRESETS;\nconst sel=$('preset');PRESETS.forEach",1)
+    # кабинет на всю высоту iframe и мост к родительской странице
+    s=s.replace("const w=sceneEl.clientWidth,h=Math.round(w<600?Math.max(400,w*1.05):Math.min(720,Math.max(440,w*.72)));","const w=sceneEl.clientWidth,h=Math.max(300,innerHeight);")
+    s=s.replace('</style>','.wrap{padding:0!important;max-width:none!important}.ctrl,#busy,.legend,.cards,h2,#log,.note,#hud,#hint{display:none!important}#scene{border-radius:0!important;border:0!important;background:radial-gradient(ellipse at 50% 40%,#f4f6f9 0%,#e3e8ef 100%)!important}body{margin:0;overflow:hidden;background:transparent}</style>',1)
+    bridge="""<script>(function(){var P=parent,$=function(i){return document.getElementById(i)},sent=false;
+window.CAB={ready:function(){return !$('loading')},run:function(i,t){var p=window.__P[i],o=p.t;if(t)p.t=t;$('preset').value=i;$('run').click();setTimeout(function(){p.t=o},50)},text:function(q){$('custom').value=q;$('runc').click()},speed:function(v){$('sp'+v).click()}};
+var L=$('log');new MutationObserver(function(){if(L.children.length<=1)sent=false;var f=L.querySelector('.fin');P.__cabEvt&&P.__cabEvt({type:'log',html:L.innerHTML});if(f&&!sent){sent=true;P.__cabEvt&&P.__cabEvt({type:'done'})}}).observe(L,{childList:true});
+var B=$('busy');new MutationObserver(function(){P.__cabEvt&&P.__cabEvt({type:'busy',text:B.textContent})}).observe(B,{childList:true,characterData:true,subtree:true});})();</script>"""
+    s=s.replace('</body>',bridge+'</body>',1)
     CAB_JS=('const CAB_HTML='+json.dumps(s,ensure_ascii=False).replace('</','<\\/')+';')
 
     return CAB_JS
